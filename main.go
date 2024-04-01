@@ -21,11 +21,11 @@ var options struct {
 	Debug    bool   `short:"d" long:"debug" description:"Enable debugging mode"`
 	Url      string `long:"url" description:"Database connection string"`
 	Host     string `long:"host" description:"Server hostname or IP"`
-	Port     int    `long:"port" description:"Server port" default:"5432"`
+	Port     int    `long:"port" description:"Server port" default:"3306"`
 	User     string `long:"user" description:"Database user"`
 	Pass     string `long:"pass" description:"Password for user"`
 	DbName   string `long:"db" description:"Database name"`
-	Ssl      string `long:"ssl" description:"SSL option"`
+	SSL      string `long:"ssl" description:"SSL option"`
 	HttpHost string `long:"bind" description:"HTTP server host" default:"localhost"`
 	HttpPort uint   `long:"listen" description:"HTTP server listen port" default:"8080"`
 	AuthUser string `long:"auth-user" description:"HTTP basic auth user"`
@@ -48,15 +48,15 @@ func getConnectionString() string {
 	if options.Url != "" {
 		url := options.Url
 
-		if strings.Contains(url, "postgresql://") {
-			fmt.Println("Invalid URL format. It should match: postgres://user:password@host:port/db?sslmode=mode")
+		if strings.Contains(url, "mysql://") {
+			fmt.Println("Invalid URL format. It should match: mysql://user:password@host:port/db?sslmode=mode")
 			os.Exit(1)
 		}
 
 		// Append sslmode parameter only if its defined as a flag and not present
 		// in the connection string.
-		if options.Ssl != "" && !strings.Contains(url, "sslmode") {
-			url += fmt.Sprintf("?sslmode=%s", options.Ssl)
+		if options.SSL != "" && !strings.Contains(url, "sslmode") {
+			url += fmt.Sprintf("?sslmode=%s", options.SSL)
 		}
 
 		return url
@@ -77,15 +77,15 @@ func getConnectionString() string {
 		options.User, options.DbName,
 	)
 
-	if options.Ssl == "" {
+	if options.SSL == "" {
 		// Disable ssl for localhost connections, most users have it disabled
 		if options.Host == "localhost" || options.Host == "127.0.0.1" {
-			options.Ssl = "disable"
+			options.SSL = "disable"
 		}
 	}
 
-	if options.Ssl != "" {
-		str += fmt.Sprintf(" sslmode=%s", options.Ssl)
+	if options.SSL != "" {
+		str += fmt.Sprintf(" sslmode=%s", options.SSL)
 	}
 
 	if options.Pass != "" {
