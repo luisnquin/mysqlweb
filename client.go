@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/nu7hatch/gouuid"
+	uuid "github.com/nu7hatch/gouuid"
 )
 
-//Client is our SQL client
+// Client is our SQL client
 type Client struct {
 	db      *sqlx.DB
 	history []Query
@@ -19,10 +19,10 @@ type Client struct {
 	user    string
 }
 
-//Row will hold rows of our SQL table
+// Row will hold rows of our SQL table
 type Row []interface{}
 
-//Result will hold our SQL query resultset
+// Result will hold our SQL query resultset
 type Result struct {
 	Columns []string `json:"columns"`
 	Rows    []Row    `json:"rows"`
@@ -34,11 +34,9 @@ type Query struct {
 	Query     string `json:"query"`
 }
 
-//NewClientFromURL will create a new mysql client using the URL provided in parameters
+// NewClientFromURL will create a new mysql client using the URL provided in parameters
 func NewClientFromURL(url string) (string, error) {
-
 	db, err := sqlx.Open("mysql", url)
-
 	if err != nil {
 		return "", err
 	}
@@ -57,16 +55,16 @@ func NewClientFromURL(url string) (string, error) {
 	return strUuid, nil
 }
 
-//Close disconnects a existing connection
+// Close disconnects a existing connection
 func (client *Client) Close() error {
-	//Clear history
+	// Clear history
 	client.history = nil
 	client.host = ""
 	client.user = ""
 	return client.db.Close()
 }
 
-//Test if we have a working connection with the database
+// Test if we have a working connection with the database
 func (client *Client) Test() error {
 	return client.db.Ping()
 }
@@ -78,19 +76,19 @@ func (client *Client) recordQuery(query string) {
 	}
 	client.history = prepend(saveQuery, client.history)
 }
+
 func prepend(v Query, slice []Query) []Query {
 	return append([]Query{v}, slice...)
 }
 
-//Info of our connected database
+// Info of our connected database
 func (client *Client) Info() (*Result, error) {
 	return client.Query(MySQLInfo)
 }
 
-//Databases will list all the databases in the system
+// Databases will list all the databases in the system
 func (client *Client) Databases() ([]string, error) {
 	res, err := client.Query(MySQLDatabases)
-
 	if err != nil {
 		return nil, err
 	}
@@ -104,10 +102,9 @@ func (client *Client) Databases() ([]string, error) {
 	return tables, nil
 }
 
-//DatabaseTables will give you list of tables belonging to the database
+// DatabaseTables will give you list of tables belonging to the database
 func (client *Client) DatabaseTables(database string) ([]string, error) {
 	res, err := client.Query(fmt.Sprintf(MySQLDatabaseTables, database))
-
 	if err != nil {
 		return nil, err
 	}
@@ -121,10 +118,9 @@ func (client *Client) DatabaseTables(database string) ([]string, error) {
 	return tables, nil
 }
 
-//DatabaseViews will give you list of views belonging to the database
+// DatabaseViews will give you list of views belonging to the database
 func (client *Client) DatabaseViews(database string) ([]string, error) {
 	res, err := client.Query(fmt.Sprintf(MySQLDatabaseViews, database))
-
 	if err != nil {
 		return nil, err
 	}
@@ -138,10 +134,9 @@ func (client *Client) DatabaseViews(database string) ([]string, error) {
 	return tables, nil
 }
 
-//DatabaseProcedures returns a list of all the stored procedures in the database
+// DatabaseProcedures returns a list of all the stored procedures in the database
 func (client *Client) DatabaseProcedures(database string) ([]string, error) {
 	res, err := client.Query(fmt.Sprintf(MySQLDatabaseProcedures, database))
-
 	if err != nil {
 		return nil, err
 	}
@@ -155,10 +150,9 @@ func (client *Client) DatabaseProcedures(database string) ([]string, error) {
 	return tables, nil
 }
 
-//DatabaseFunctions returns a list of all the functions in the database
+// DatabaseFunctions returns a list of all the functions in the database
 func (client *Client) DatabaseFunctions(database string) ([]string, error) {
 	res, err := client.Query(fmt.Sprintf(MySQLDatabaseFunctions, database))
-
 	if err != nil {
 		return nil, err
 	}
@@ -172,15 +166,14 @@ func (client *Client) DatabaseFunctions(database string) ([]string, error) {
 	return tables, nil
 }
 
-//TableInfo will return info like data used, row count etc.
+// TableInfo will return info like data used, row count etc.
 func (client *Client) TableInfo(table string) (*Result, error) {
 	return client.Query(fmt.Sprintf(MySQLTableInfo, table))
 }
 
-//TableIndexes returns all the indexes of the table
+// TableIndexes returns all the indexes of the table
 func (client *Client) TableIndexes(table string) (*Result, error) {
 	res, err := client.Query(fmt.Sprintf(MySQLTableIndexs, table))
-
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +183,6 @@ func (client *Client) TableIndexes(table string) (*Result, error) {
 
 func (client *Client) TableColumns(database string, table string) (*Result, error) {
 	res, err := client.Query(fmt.Sprintf(MySQLTableColumns, database, table))
-
 	if err != nil {
 		return nil, err
 	}
@@ -198,10 +190,9 @@ func (client *Client) TableColumns(database string, table string) (*Result, erro
 	return res, err
 }
 
-//ProcedureParameters returns all the paramaters of a stored procedure
+// ProcedureParameters returns all the paramaters of a stored procedure
 func (client *Client) ProcedureParameters(procedure string, database string) (*Result, error) {
 	res, err := client.Query(fmt.Sprintf(MySQLProcedureParameters, procedure, database))
-
 	if err != nil {
 		return nil, err
 	}
@@ -209,10 +200,9 @@ func (client *Client) ProcedureParameters(procedure string, database string) (*R
 	return res, err
 }
 
-//DatabaseCollationCharSet returns all the collation and character sets in db
+// DatabaseCollationCharSet returns all the collation and character sets in db
 func (client *Client) DatabaseCollationCharSet() (*Result, error) {
 	res, err := client.Query(MySQLAllCollationCharSet)
-
 	if err != nil {
 		return nil, err
 	}
@@ -220,10 +210,9 @@ func (client *Client) DatabaseCollationCharSet() (*Result, error) {
 	return res, err
 }
 
-//AlterDatabase let's you set character set & collation of the database
+// AlterDatabase let's you set character set & collation of the database
 func (client *Client) AlterDatabase(database string, charset string, collation string) (*Result, error) {
 	res, err := client.Query(fmt.Sprintf(MySQLDatabaseAlter, database, charset, collation))
-
 	if err != nil {
 		return nil, err
 	}
@@ -231,10 +220,9 @@ func (client *Client) AlterDatabase(database string, charset string, collation s
 	return res, err
 }
 
-//DropDatabase will drop the database from the system
+// DropDatabase will drop the database from the system
 func (client *Client) DropDatabase(database string) (*Result, error) {
 	res, err := client.Query(fmt.Sprintf(MySQLDatabaseDrop, database))
-
 	if err != nil {
 		return nil, err
 	}
@@ -242,10 +230,9 @@ func (client *Client) DropDatabase(database string) (*Result, error) {
 	return res, err
 }
 
-//DropTable will drop the table from selected database
+// DropTable will drop the table from selected database
 func (client *Client) DropTable(database string, table string) (*Result, error) {
 	res, err := client.Query(fmt.Sprintf(MySQLTableDrop, database, table))
-
 	if err != nil {
 		return nil, err
 	}
@@ -253,10 +240,9 @@ func (client *Client) DropTable(database string, table string) (*Result, error) 
 	return res, err
 }
 
-//TruncateTable will truncate the table
+// TruncateTable will truncate the table
 func (client *Client) TruncateTable(database string, table string) (*Result, error) {
 	res, err := client.Query(fmt.Sprintf(MySQLTableTruncate, database, table))
-
 	if err != nil {
 		return nil, err
 	}
@@ -264,10 +250,9 @@ func (client *Client) TruncateTable(database string, table string) (*Result, err
 	return res, err
 }
 
-//ProcedureDefinition will give you the create statement of procedure/function
+// ProcedureDefinition will give you the create statement of procedure/function
 func (client *Client) ProcedureDefinition(procType string, database string, name string) (*Result, error) {
 	res, err := client.Query(fmt.Sprintf(MySQLProcedureDefinition, procType, database, name))
-
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +262,6 @@ func (client *Client) ProcedureDefinition(procType string, database string, name
 
 func (client *Client) DropProcedure(procType string, database string, name string) (bool, error) {
 	_, err := client.Execute(fmt.Sprintf(MySQLProcedureDrop, procType, database, name))
-
 	if err != nil {
 		return false, err
 	}
@@ -287,17 +271,15 @@ func (client *Client) DropProcedure(procType string, database string, name strin
 
 func (client *Client) ProcedureCreate(procType string, database string, name string, definition string) (bool, error) {
 	trans, err := client.db.Begin()
-
 	if err != nil {
 		return false, err
 	}
 
-	//set this as default database
+	// set this as default database
 	_, err = trans.Exec(fmt.Sprintf("use %s;", database))
 
-	//Drop existing procedure
+	// Drop existing procedure
 	_, err = trans.Exec(fmt.Sprintf(MySQLProcedureDrop, procType, database, name))
-
 	if err != nil {
 		return false, err
 	}
@@ -311,7 +293,6 @@ func (client *Client) ProcedureCreate(procType string, database string, name str
 	//newDef := splice(definition, mehIndex+yoIndex, 0, "`"+database+"`.")
 
 	_, err = trans.Exec(definition)
-
 	if err != nil {
 		return false, err
 	}
@@ -321,7 +302,6 @@ func (client *Client) ProcedureCreate(procType string, database string, name str
 
 func (client *Client) ViewDefinition(database string, name string) (*Result, error) {
 	res, err := client.Query(fmt.Sprintf(MySQLViewDefinition, database, name))
-
 	if err != nil {
 		return nil, err
 	}
@@ -330,21 +310,18 @@ func (client *Client) ViewDefinition(database string, name string) (*Result, err
 }
 
 func (client *Client) Search(query string) (*Result, error) {
-	//Search in table list
+	// Search in table list
 	resTbl, err := client.Query(fmt.Sprintf(MySQLSearchTable, query))
-
 	if err != nil {
 		return nil, err
 	}
 
 	resProc, err := client.Query(fmt.Sprintf(MySQLSearchProcedure, query))
-
 	if err != nil {
 		return nil, err
 	}
 
 	resFunc, err := client.Query(fmt.Sprintf(MySQLSearchFunction, query))
-
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +336,7 @@ func (client *Client) Search(query string) (*Result, error) {
 	return &resMerge, err
 }
 
-//Query will execute the sql query passed as parameter, and return the resultset
+// Query will execute the sql query passed as parameter, and return the resultset
 func (client *Client) Query(query string) (*Result, error) {
 	rows, err := client.db.Queryx(query)
 
@@ -372,7 +349,6 @@ func (client *Client) Query(query string) (*Result, error) {
 	defer rows.Close()
 
 	cols, err := rows.Columns()
-
 	if err != nil {
 		return nil, err
 	}
@@ -406,7 +382,6 @@ func (client *Client) Query(query string) (*Result, error) {
 
 func (client *Client) Execute(query string) (int64, error) {
 	res, err := client.db.Exec(query)
-
 	if err != nil {
 		return -1, err
 	}
@@ -419,7 +394,7 @@ func (client *Client) Execute(query string) (int64, error) {
 	return rowsAffected, nil
 }
 
-//Format the resultset
+// Format the resultset
 func (res *Result) Format() []map[string]interface{} {
 	var items []map[string]interface{}
 
@@ -436,7 +411,7 @@ func (res *Result) Format() []map[string]interface{} {
 	return items
 }
 
-//CSV will format the sql resultset as CSV
+// CSV will format the sql resultset as CSV
 func (res *Result) CSV() []byte {
 	buff := &bytes.Buffer{}
 	writer := csv.NewWriter(buff)
@@ -455,7 +430,6 @@ func (res *Result) CSV() []byte {
 		}
 
 		err := writer.Write(record)
-
 		if err != nil {
 			fmt.Println(err)
 			break

@@ -4,6 +4,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -50,11 +51,11 @@ func assetContentType(name string) string {
 func APIHome(c *gin.Context) {
 	data, err := staticFolder.ReadFile("static/index.html")
 	if err != nil {
-		c.String(400, err.Error())
+		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	c.Data(200, "text/html; charset=utf-8", data)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", data)
 }
 
 // APIConnect will connect to our mysql database
@@ -62,13 +63,13 @@ func APIConnect(c *gin.Context) {
 	url := c.Request.FormValue("url")
 
 	if url == "" {
-		c.JSON(400, Error{"Url parameter is required"})
+		c.JSON(http.StatusBadRequest, Error{"Url parameter is required"})
 		return
 	}
 
 	clientKey, err := NewClientFromURL(url)
 	if err != nil {
-		c.JSON(400, Error{err.Error()})
+		c.JSON(http.StatusBadRequest, Error{err.Error()})
 		return
 	}
 
@@ -76,7 +77,7 @@ func APIConnect(c *gin.Context) {
 
 	err = client.Test()
 	if err != nil {
-		c.JSON(400, Error{err.Error()})
+		c.JSON(http.StatusBadRequest, Error{err.Error()})
 		return
 	}
 
@@ -97,7 +98,7 @@ func APIConnect(c *gin.Context) {
 
 	formatedRes["connId"] = clientKey
 
-	c.JSON(200, formatedRes)
+	c.JSON(http.StatusOK, formatedRes)
 }
 
 func APIClose(c *gin.Context) {
@@ -107,7 +108,7 @@ func APIClose(c *gin.Context) {
 
 	err := dbClient.Close()
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 	}
 
 	// Remove from
@@ -121,7 +122,7 @@ func APIClose(c *gin.Context) {
 		}
 	}
 
-	c.Writer.WriteHeader(204)
+	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
 // APIGetDatabases will get you all databases in system
@@ -132,11 +133,11 @@ func APIGetDatabases(c *gin.Context) {
 
 	names, err := dbClient.Databases()
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, names)
+	c.JSON(http.StatusOK, names)
 }
 
 // APIGetDatabaseTables will give the tables of a database
@@ -147,11 +148,11 @@ func APIGetDatabaseTables(c *gin.Context) {
 
 	res, err := dbClient.DatabaseTables(c.Params.ByName("database"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 // APIGetDatabaseViews will give the views of a database
@@ -162,11 +163,11 @@ func APIGetDatabaseViews(c *gin.Context) {
 
 	res, err := dbClient.DatabaseViews(c.Params.ByName("database"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 // APIGetDatabaseProcedures will give the stored procedures of a database
@@ -177,11 +178,11 @@ func APIGetDatabaseProcedures(c *gin.Context) {
 
 	res, err := dbClient.DatabaseProcedures(c.Params.ByName("database"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 // APIGetDatabaseFunctions will give the functions of a database
@@ -192,11 +193,11 @@ func APIGetDatabaseFunctions(c *gin.Context) {
 
 	res, err := dbClient.DatabaseFunctions(c.Params.ByName("database"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 // APISetDefaultDatabase will set the database as default db for connection
@@ -212,7 +213,7 @@ func APIRunQueryGet(c *gin.Context) {
 	query := strings.TrimSpace(c.Request.FormValue("query"))
 
 	if query == "" {
-		c.JSON(400, errors.New("Query parameter is missing"))
+		c.JSON(http.StatusBadRequest, errors.New("Query parameter is missing"))
 		return
 	}
 
@@ -223,7 +224,7 @@ func APIRunQuery(c *gin.Context) {
 	query := strings.TrimSpace(c.Request.FormValue("query"))
 
 	if query == "" {
-		c.JSON(400, errors.New("Query parameter is missing"))
+		c.JSON(http.StatusBadRequest, errors.New("Query parameter is missing"))
 		return
 	}
 
@@ -235,7 +236,7 @@ func APIExplainQuery(c *gin.Context) {
 	query := strings.TrimSpace(c.Request.FormValue("query"))
 
 	if query == "" {
-		c.JSON(400, errors.New("Query parameter is missing"))
+		c.JSON(http.StatusBadRequest, errors.New("Query parameter is missing"))
 		return
 	}
 
@@ -249,11 +250,11 @@ func APIGetColumnOfTable(c *gin.Context) {
 
 	res, err := dbClient.TableColumns(c.Params.ByName("database"), c.Params.ByName("table"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 // APIGetTableInfo returns info about table like row_count, data size etc.
@@ -264,11 +265,11 @@ func APIGetTableInfo(c *gin.Context) {
 
 	res, err := dbClient.TableInfo(c.Params.ByName("table"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, res.Format()[0])
+	c.JSON(http.StatusOK, res.Format()[0])
 }
 
 // APIHistory will return query history of current dbClient
@@ -277,7 +278,7 @@ func APIHistory(c *gin.Context) {
 	yoConnID := c.Request.Header.Get("X-CONN-ID")
 	dbClient := dbClientMap[yoConnID]
 
-	c.JSON(200, dbClient.history)
+	c.JSON(http.StatusOK, dbClient.history)
 }
 
 // APIInfo returns information about the current db connecction
@@ -293,13 +294,13 @@ func APIInfo(c *gin.Context) {
 			Connection: dbConnArr,
 		}
 
-		c.JSON(400, formatedRes)
+		c.JSON(http.StatusBadRequest, formatedRes)
 		return
 	}
 
 	res, err := dbClient.Info()
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
@@ -308,7 +309,7 @@ func APIInfo(c *gin.Context) {
 	formatedRes["host"] = dbClient.host
 	formatedRes["user"] = dbClient.user
 
-	c.JSON(200, formatedRes)
+	c.JSON(http.StatusOK, formatedRes)
 }
 
 // APITableIndexes returns the indexs of a table
@@ -319,11 +320,11 @@ func APITableIndexes(c *gin.Context) {
 
 	res, err := dbClient.TableIndexes(c.Params.ByName("table"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 // APIProcedureParameters returns the parameters of a procedure
@@ -334,11 +335,11 @@ func APIProcedureParameters(c *gin.Context) {
 
 	res, err := dbClient.ProcedureParameters(c.Params.ByName("procedure"), c.Request.FormValue("database"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 // APIGetCollationCharSet returns the character sets and collation available in
@@ -350,11 +351,11 @@ func APIGetCollationCharSet(c *gin.Context) {
 
 	res, err := dbClient.DatabaseCollationCharSet()
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 // APIAlterDatabase alter database to change charset & collation
@@ -366,11 +367,11 @@ func APIAlterDatabase(c *gin.Context) {
 	res, err := dbClient.AlterDatabase(c.Params.ByName("database"),
 		c.Request.FormValue("charset"), c.Request.FormValue("collation"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(201, res)
+	c.JSON(http.StatusCreated, res)
 }
 
 // APIDropDatabase drops the given database from the system
@@ -381,11 +382,11 @@ func APIDropDatabase(c *gin.Context) {
 
 	_, err := dbClient.DropDatabase(c.Params.ByName("database"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.Writer.WriteHeader(204)
+	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
 // APIDropTable will drop the table from this database
@@ -396,11 +397,11 @@ func APIDropTable(c *gin.Context) {
 
 	_, err := dbClient.DropTable(c.Params.ByName("database"), c.Params.ByName("table"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.Writer.WriteHeader(204)
+	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
 // APITruncateTable truncates the table
@@ -411,11 +412,11 @@ func APITruncateTable(c *gin.Context) {
 
 	_, err := dbClient.TruncateTable(c.Params.ByName("database"), c.Params.ByName("table"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.Writer.WriteHeader(204)
+	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
 // APIProcedureDefinition get definition of a procedure
@@ -426,11 +427,11 @@ func APIProcedureDefinition(c *gin.Context) {
 
 	res, err := dbClient.ProcedureDefinition("procedure", c.Params.ByName("database"), c.Params.ByName("procedure"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 // APIFunctionDefinition get definition of a function
@@ -441,11 +442,11 @@ func APIFunctionDefinition(c *gin.Context) {
 
 	res, err := dbClient.ProcedureDefinition("function", c.Params.ByName("database"), c.Params.ByName("function"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 // APICreateProcedure creates/edits a stored procedure
@@ -460,11 +461,11 @@ func APICreateProcedure(c *gin.Context) {
 
 	_, err := dbClient.ProcedureCreate("PROCEDURE", dbName, procName, procDef)
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.Writer.WriteHeader(200)
+	c.Writer.WriteHeader(http.StatusOK)
 }
 
 // APICreateFunction creates/edits a function
@@ -479,11 +480,11 @@ func APICreateFunction(c *gin.Context) {
 
 	_, err := dbClient.ProcedureCreate("FUNCTION", dbName, procName, procDef)
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.Writer.WriteHeader(200)
+	c.Writer.WriteHeader(http.StatusOK)
 }
 
 // APIDropProcedure drops the procedure
@@ -494,11 +495,11 @@ func APIDropProcedure(c *gin.Context) {
 
 	_, err := dbClient.DropProcedure("PROCEDURE", c.Params.ByName("database"), c.Params.ByName("procedure"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.Writer.WriteHeader(204)
+	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
 // APIViewDefinition gets the definition of a view
@@ -509,11 +510,11 @@ func APIViewDefinition(c *gin.Context) {
 
 	res, err := dbClient.ViewDefinition(c.Params.ByName("database"), c.Params.ByName("view"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 func apiSearch(c *gin.Context) {
@@ -523,11 +524,11 @@ func apiSearch(c *gin.Context) {
 
 	res, err := dbClient.Search(c.Params.ByName("query"))
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 // APIHandleQuery handles thq query and return the resultset as JSON
@@ -541,7 +542,7 @@ func APIHandleQuery(query string, c *gin.Context) {
 	}
 
 	if yoConnID == "" {
-		c.JSON(400, Error{"Invalid connection"})
+		c.JSON(http.StatusBadRequest, Error{"Invalid connection"})
 		return
 	}
 
@@ -554,14 +555,14 @@ func APIHandleQuery(query string, c *gin.Context) {
 	if strings.Contains(strings.ToUpper(query), "UPDATE") ||
 		strings.Contains(strings.ToUpper(query), "DELETE") {
 		if !strings.Contains(strings.ToUpper(query), "WHERE") {
-			c.JSON(400, Error{"WHERE statement is mandatory with UPDATE & DELETE statements"})
+			c.JSON(http.StatusBadRequest, Error{"WHERE statement is mandatory with UPDATE & DELETE statements"})
 			return
 		}
 	}
 
 	result, err := dbClient.Query(query)
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
@@ -569,22 +570,22 @@ func APIHandleQuery(query string, c *gin.Context) {
 
 	if len(q["format"]) > 0 {
 		if q["format"][0] == "csv" {
-			c.Data(200, "text/csv", result.CSV())
+			c.Data(http.StatusOK, "text/csv", result.CSV())
 			return
 		}
 	}
 
-	c.JSON(200, result)
+	c.JSON(http.StatusOK, result)
 }
 
 func APIGetBookmarks(c *gin.Context) {
 	bookmarks, err := readBookmarks(getBookmarkPath())
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.JSON(200, bookmarks)
+	c.JSON(http.StatusOK, bookmarks)
 }
 
 func APISaveBookmark(c *gin.Context) {
@@ -594,7 +595,7 @@ func APISaveBookmark(c *gin.Context) {
 	strConPort := c.Request.FormValue("port")
 	intConPort, err := strconv.Atoi(strConPort)
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 	conUser := c.Request.FormValue("user")
@@ -613,11 +614,11 @@ func APISaveBookmark(c *gin.Context) {
 	i, err := saveBookmark(objBookmark, getBookmarkPath())
 
 	if i == -1 {
-		c.JSON(400, NewError(errors.New("A connection with this name already exists")))
+		c.JSON(http.StatusBadRequest, NewError(errors.New("A connection with this name already exists")))
 		return
 	}
 
-	c.Writer.WriteHeader(204)
+	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
 func APIDeleteBookmark(c *gin.Context) {
@@ -625,11 +626,11 @@ func APIDeleteBookmark(c *gin.Context) {
 
 	err := deleteBookmark(bookName, getBookmarkPath())
 	if err != nil {
-		c.JSON(400, NewError(err))
+		c.JSON(http.StatusBadRequest, NewError(err))
 		return
 	}
 
-	c.Writer.WriteHeader(204)
+	c.Writer.WriteHeader(http.StatusNoContent)
 }
 
 // APIServeAsset serves the static assets
@@ -641,25 +642,25 @@ func APIServeAsset(c *gin.Context) {
 
 	data, err := staticFolder.ReadFile(file)
 	if err != nil {
-		c.String(400, err.Error())
+		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	if len(data) == 0 {
-		c.String(404, "Asset is empty")
+		c.String(http.StatusNotFound, "Asset is empty")
 		return
 	}
 
-	c.Data(200, assetContentType(file), data)
+	c.Data(http.StatusOK, assetContentType(file), data)
 }
 
 func getUpdate(c *gin.Context) {
-	c.Writer.WriteHeader(204)
+	c.Writer.WriteHeader(http.StatusNoContent)
 	// update := checkForUpdate(VERSION)
 
 	// if update == nil {
 	// 	return
 	// }
 
-	// c.JSON(200, update)
+	// c.JSON(http.StatusOK, update)
 }
