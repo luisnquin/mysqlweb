@@ -13,12 +13,12 @@ import (
 	"github.com/jessevdk/go-flags"
 )
 
-//Current version of the app
+// Current version of the app
 const VERSION = "0.8.4"
 
 var options struct {
 	Version  bool   `short:"v" long:"version" description:"Print version"`
-	Debug    bool   `short:"d" long:"debug" description:"Enable debugging mode" default:"false"`
+	Debug    bool   `short:"d" long:"debug" description:"Enable debugging mode"`
 	Url      string `long:"url" description:"Database connection string"`
 	Host     string `long:"host" description:"Server hostname or IP"`
 	Port     int    `long:"port" description:"Server port" default:"5432"`
@@ -33,9 +33,11 @@ var options struct {
 	SkipOpen bool   `short:"s" long:"skip-open" description:"Skip browser open on start"`
 }
 
-//var dbClient *Client
-var dbClientMap map[string]*Client
-var dbConnArr []Connection
+// var dbClient *Client
+var (
+	dbClientMap map[string]*Client
+	dbConnArr   []Connection
+)
 
 func exitWithMessage(message string) {
 	fmt.Println("Error:", message)
@@ -132,8 +134,8 @@ func initClient() {
 
 func initOptions() {
 	_, err := flags.ParseArgs(&options, os.Args)
-
 	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 

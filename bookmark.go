@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/smurfpandey/go-homedir"
+	"github.com/mitchellh/go-homedir"
 )
 
-//Connection is a single saved connection-string object
+// Connection is a single saved connection-string object
 type Connection struct {
 	Host     string
 	Port     int
@@ -38,12 +38,12 @@ func getBookmarkPath() string {
 	path, _ := homedir.Dir()
 	bookmarkPath := fmt.Sprintf("%s/.mysqlweb/bookmark", path)
 
-	//Check if this path exists
+	// Check if this path exists
 	isExists, _ := ExistsFileFolder(bookmarkPath)
 
-	//If no, then create directory
+	// If no, then create directory
 	if !isExists {
-		os.MkdirAll(bookmarkPath, 0777)
+		os.MkdirAll(bookmarkPath, 0o777)
 	}
 
 	return bookmarkPath
@@ -60,7 +60,7 @@ func readBookmarks(path string) (Bookmarks, error) {
 	}
 
 	for _, file := range files {
-		//We need .json files only
+		// We need .json files only
 		if filepath.Ext(file.Name()) != ".json" {
 			continue
 		}
@@ -69,7 +69,6 @@ func readBookmarks(path string) (Bookmarks, error) {
 		conName := fileBaseName(file.Name())
 
 		data, err := ioutil.ReadFile(fullpath)
-
 		if err != nil {
 			return results, err
 		}
@@ -102,11 +101,11 @@ func saveBookmark(objBookmark Bookmark, path string) (int, error) {
 
 	// equivalent to Python's `if not os.path.exists(filename)`
 	if _, err := os.Stat(fullFilePath); err == nil {
-		//fmt.Printf("file exists; processing...")
+		// fmt.Printf("file exists; processing...")
 		return -1, nil
 	}
 
-	filErr := ioutil.WriteFile(fullFilePath, data, 0644)
+	filErr := ioutil.WriteFile(fullFilePath, data, 0o644)
 	if filErr != nil {
 		return 0, filErr
 	}
@@ -115,13 +114,11 @@ func saveBookmark(objBookmark Bookmark, path string) (int, error) {
 }
 
 func deleteBookmark(bookmarkName string, path string) error {
-
 	fileName := bookmarkName + ".json"
 
 	fullFilePath := filepath.FromSlash(path + "/" + fileName)
 
 	err := os.Remove(fullFilePath)
-
 	if err != nil {
 		return err
 	}
